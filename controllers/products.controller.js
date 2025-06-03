@@ -84,12 +84,13 @@ export const deleteProduct = async (req, res, next) => {
             });
         }
 
-        await product.remove();
+        await product.deleteOne();  // Changed from remove() to deleteOne()
         res.status(200).json({
             success: true,
             data: {}
         });
     } catch (error) {
+        console.error(error);  // Add error logging
         res.status(500).json({
             success: false,
             error: 'Server Error'
