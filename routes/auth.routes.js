@@ -10,6 +10,7 @@ import {
     resetPassword, 
     updatePassword,
     deleteAccount,
+    updateDetails
 } from "../controllers/auth.controller.js";
 
 router.post(
@@ -60,6 +61,12 @@ router.put(
     ],
     updatePassword
 );
+
+router.put(
+    '/updatedetails',
+    protect,
+    updateDetails
+)
 
 
 router.delete(
