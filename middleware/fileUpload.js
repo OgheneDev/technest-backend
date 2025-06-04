@@ -19,14 +19,14 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalName));
     }
 });
 
 // File filter
 const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = allowedTypes.test(path.extname(file.originalName).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
 
     if (extname && mimetype) {
@@ -36,9 +36,16 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-// Create upload middleware
-export const uploadSingle = multer({
+// Create upload middleware for products (original)
+export const upload = multer({
     storage,
     fileFilter,
     limits: { fileSize: 5000000 } // 5MB limit
-}).single('avatar'); // Match frontend field name
+});
+
+// Specific middleware for user avatar uploads
+export const uploadSingleAvatar = upload.single('avatar'); // Matches frontend field name
+
+// Specific middleware for product image uploads
+export const uploadSingle = upload.single('image'); // For single product image
+export const uploadMultiple = upload.array('images', 10); // For multiple product images (max 10)
