@@ -12,6 +12,7 @@ import {
     deleteAccount,
     updateDetails
 } from "../controllers/auth.controller.js";
+import { uploadSingle } from "../middleware/fileUpload.js";
 
 router.post(
     '/register',
@@ -65,8 +66,9 @@ router.put(
 router.put(
     '/updatedetails',
     protect,
+    uploadSingle,
     updateDetails
-)
+);
 
 
 router.delete(

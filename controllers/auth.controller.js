@@ -248,6 +248,11 @@ export const updatePassword = async (req, res, next) => {
 // @access Private
 export const updateDetails = async (req, res, next) => {
     try {
+        // Check if user is authenticated
+        if (!req.user) {
+            return res.status(401).json({ success: false, error: 'User not authenticated' });
+        }
+
         const fieldsToUpdate = {};
         if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
         if (req.body.lastName) fieldsToUpdate.lastName = req.body.lastName;
@@ -263,7 +268,7 @@ export const updateDetails = async (req, res, next) => {
 
         // Find and update user
         const user = await User.findByIdAndUpdate(
-            req.user.id,
+            req.user._id, // Use _id to ensure correct field
             fieldsToUpdate,
             {
                 new: true,
@@ -271,11 +276,16 @@ export const updateDetails = async (req, res, next) => {
             }
         );
 
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
         res.status(200).json({
             success: true,
             data: user
         });
     } catch (error) {
+        console.error('Update details error:', error);
         next(error);
     }
 };
