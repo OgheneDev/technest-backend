@@ -91,7 +91,7 @@ export const getWishlist = async (req, res, next) => {
 
 export const removeFromWishlist = async (req, res, next) => {
     try {
-        const wishlist = Wishlist.findOne({ user: req.user.id })
+        const wishlist = await Wishlist.findOne({ user: req.user.id }); // Add await here
 
         if (!wishlist) {
             return res.status(404).json({
@@ -118,4 +118,4 @@ export const removeFromWishlist = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}
+};
