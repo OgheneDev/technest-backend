@@ -59,7 +59,12 @@ export const createProduct = async (req, res, next) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const product = Product.create(req.body);
+        // Add image paths to request body
+        if (req.files) {
+            req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
+        }
+
+        const product = await Product.create(req.body);
 
         res.status(201).json({
          success: true,
@@ -112,10 +117,38 @@ export const updateProduct = async (req, res, next) => {
             });
         }
 
+        // Add new image paths to request body if files were uploaded
+        if (req.files) {
+            req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
+        }
+
         product = await Product.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true
         });
+
+        res.status(200).json({
+            success: true,
+            data: product
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc Get single product
+// @route GET /api/products/:id
+// @access Public
+export const getProductById = async (req, res, next) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                error: 'Product not found'
+            });
+        }
 
         res.status(200).json({
             success: true,

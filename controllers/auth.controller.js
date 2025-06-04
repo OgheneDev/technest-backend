@@ -248,11 +248,10 @@ export const updatePassword = async (req, res, next) => {
 // @access Private
 export const updateDetails = async (req, res, next) => {
     try {
-        // Get fields to update - only allow firstName, lastName and avatar
         const fieldsToUpdate = {};
         if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
         if (req.body.lastName) fieldsToUpdate.lastName = req.body.lastName;
-        if (req.body.avatar) fieldsToUpdate.avatar = req.body.avatar
+        if (req.file) fieldsToUpdate.avatar = `/uploads/avatars/${req.file.filename}`;
 
         // Check if any fields were provided
         if (Object.keys(fieldsToUpdate).length === 0) {

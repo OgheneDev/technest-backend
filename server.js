@@ -7,6 +7,8 @@ import { cartRouter } from './routes/cart.routes.js';
 import { wishlistRouter } from './routes/wishlist.routes.js';
 import { checkoutRouter } from './routes/checkout.routes.js';
 import { errorHandler } from './middleware/error.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const PORT = process.env.PORT || 5000;
 
@@ -36,6 +38,11 @@ app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/wishlist', wishlistRouter);
 app.use('/api/checkout', checkoutRouter);
+
+// Serve static files from uploads directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Error middleware
 app.use(errorHandler);
