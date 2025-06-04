@@ -65,13 +65,19 @@ export const addToWishlist = async (req, res, next) => {
 
 export const getWishlist = async (req, res, next) => {
     try {
-        const wishlist = Wishlist.findOne({ user: req.user.id })
-            .populate('products.product')
+        const wishlist = await Wishlist.findOne({ user: req.user.id })
+            .populate('products.product');
         
+        // If no wishlist exists, create an empty one
         if (!wishlist) {
-            return res.status(404).json({
-                success: false,
-                error: 'Wishlist not found'
+            const newWishlist = await Wishlist.create({
+                user: req.user.id,
+                products: []
+            });
+
+            return res.status(200).json({
+                success: true,
+                data: newWishlist
             });
         }
 
@@ -81,6 +87,7 @@ export const getWishlist = async (req, res, next) => {
         });
 
     } catch (error) {
+        console.error('Wishlist fetch error:', error);
         next(error);
     }
 }
