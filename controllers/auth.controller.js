@@ -256,6 +256,7 @@ export const updateDetails = async (req, res, next) => {
         const fieldsToUpdate = {};
         if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
         if (req.body.lastName) fieldsToUpdate.lastName = req.body.lastName;
+        if (req.body.phoneNumber) fieldsToUpdate.phoneNumber = req.body.phoneNumber;
         if (req.file) fieldsToUpdate.avatar = `/uploads/avatars/${req.file.filename}`;
 
         // Check if any fields were provided
