@@ -4,8 +4,14 @@ import fs from 'fs';
 
 // Ensure upload directory exists
 const ensureDir = (dir) => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+    try {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+            console.log(`Created directory: ${dir}`);
+        }
+    } catch (err) {
+        console.error(`Failed to create directory ${dir}:`, err);
+        throw new Error(`Failed to create upload directory: ${err.message}`);
     }
 };
 
@@ -14,8 +20,12 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const isProduct = req.baseUrl.includes('products');
         const uploadDir = isProduct ? './uploads/products' : './uploads/avatars';
-        ensureDir(uploadDir);
-        cb(null, uploadDir);
+        try {
+            ensureDir(uploadDir);
+            cb(null, uploadDir);
+        } catch (err) {
+            cb(err, null);
+        }
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -36,7 +46,7 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-// Create upload middleware for products (original)
+// Create base multer instance
 export const upload = multer({
     storage,
     fileFilter,
@@ -47,5 +57,5 @@ export const upload = multer({
 export const uploadSingleAvatar = upload.single('avatar'); // Matches frontend field name
 
 // Specific middleware for product image uploads
-export const uploadSingle = upload.single('image'); // For single product image
-export const uploadMultiple = upload.array('images', 10); // For multiple product images (max 10)
+export const uploadSingle = upload.single('image');
+export const uploadMultiple = upload.array('images', 10); // Max 10 images

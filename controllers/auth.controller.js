@@ -248,15 +248,24 @@ export const updatePassword = async (req, res, next) => {
 // @access Private
 export const updateDetails = async (req, res, next) => {
     try {
+        // Check for multer errors
+        if (req.fileValidationError) {
+            return res.status(400).json({
+                success: false,
+                error: req.fileValidationError.message
+            });
+        }
+
         // Check if user is authenticated
         if (!req.user) {
             return res.status(401).json({ success: false, error: 'User not authenticated' });
         }
 
+        console.log('Request body:', req.body, 'File:', req.file); // Debug log
+
         const fieldsToUpdate = {};
         if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
         if (req.body.lastName) fieldsToUpdate.lastName = req.body.lastName;
-        if (req.body.phoneNumber) fieldsToUpdate.phoneNumber = req.body.phoneNumber;
         if (req.file) fieldsToUpdate.avatar = `/uploads/avatars/${req.file.filename}`;
 
         // Check if any fields were provided
@@ -269,7 +278,7 @@ export const updateDetails = async (req, res, next) => {
 
         // Find and update user
         const user = await User.findByIdAndUpdate(
-            req.user._id, // Use _id to ensure correct field
+            req.user._id,
             fieldsToUpdate,
             {
                 new: true,

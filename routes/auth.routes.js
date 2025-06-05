@@ -2,6 +2,7 @@ import express from "express";
 import { check } from "express-validator";
 const router = express.Router();
 import { protect } from "../middleware/auth.js";
+import { handleMulterErrors } from "../middleware/multer.js";
 import { 
     register, 
     login, 
@@ -67,6 +68,7 @@ router.put(
     '/updatedetails',
     protect,
     uploadSingleAvatar,
+    handleMulterErrors,
     updateDetails
 );
 
