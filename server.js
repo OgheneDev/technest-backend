@@ -9,6 +9,8 @@ import { checkoutRouter } from './routes/checkout.routes.js';
 import { errorHandler } from './middleware/error.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./swagger.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -46,6 +48,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Error middleware
 app.use(errorHandler);
+
+// Swagger route
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Example route
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello World" });
+});
 
 // Start Server
 app.listen(PORT, () => {

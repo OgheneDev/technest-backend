@@ -15,6 +15,11 @@ import {
 } from "../controllers/auth.controller.js";
 import { uploadSingleAvatar } from "../middleware/fileUpload.js";
 
+/**
+ * @route   POST /api/auth/register
+ * @desc    Register a new user
+ * @access  Public
+ */
 router.post(
     '/register',
     [
@@ -28,6 +33,11 @@ router.post(
     register
 );
 
+/**
+ * @route   POST /api/auth/login
+ * @desc    Authenticate user and get token
+ * @access  Public
+ */
 router.post(
     '/login',
     [
@@ -37,14 +47,29 @@ router.post(
     login
 );
 
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current logged in user's profile
+ * @access  Private
+ */
 router.get(
     '/me',
     protect,
     getMe
 );
 
+/**
+ * @route   POST /api/auth/forgotpassword
+ * @desc    Initiate password reset and send email
+ * @access  Public
+ */
 router.post('/forgotpassword', forgotPassword);
 
+/**
+ * @route   PUT /api/auth/resetpassword/:resettoken
+ * @desc    Reset user password using provided token
+ * @access  Public
+ */
 router.put(
     '/resetpassword/:resettoken',
     [
@@ -53,7 +78,11 @@ router.put(
     resetPassword
 );
 
-// New routes for user management
+/**
+ * @route   PUT /api/auth/updatepassword
+ * @desc    Update authenticated user's password
+ * @access  Private
+ */
 router.put(
     '/updatepassword',
     protect,
@@ -64,6 +93,11 @@ router.put(
     updatePassword
 );
 
+/**
+ * @route   PUT /api/auth/updatedetails
+ * @desc    Update authenticated user's details (firstName, lastName, phoneNumber, avatar)
+ * @access  Private
+ */
 router.put(
     '/updatedetails',
     protect,
@@ -72,7 +106,11 @@ router.put(
     updateDetails
 );
 
-
+/**
+ * @route   DELETE /api/auth/deleteaccount
+ * @desc    Delete authenticated user's account after password confirmation
+ * @access  Private
+ */
 router.delete(
     '/deleteaccount',
     protect,
@@ -82,4 +120,4 @@ router.delete(
     deleteAccount
 );
 
-export const authRouter = router; 
+export const authRouter = router;
