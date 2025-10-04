@@ -10,11 +10,89 @@ const router = express.Router();
  * /api/products:
  *   get:
  *     summary: Retrieve a list of all products
+ *     description: Fetches a paginated list of products with optional category filtering. Supports pagination via query parameters `page` and `limit`.
  *     tags:
  *       - Products
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of products per page
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *         description: Filter products by category
  *     responses:
  *       200:
- *         description: A list of products
+ *         description: Successfully retrieved the list of products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
+ *                     totalItems:
+ *                       type: integer
+ *                       example: 50
+ *                     itemsPerPage:
+ *                       type: integer
+ *                       example: 10
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *             example:
+ *               success: true
+ *               pagination:
+ *                 currentPage: 1
+ *                 totalPages: 5
+ *                 totalItems: 50
+ *                 itemsPerPage: 10
+ *               data:
+ *                 - _id: "507f1f77bcf86cd799439011"
+ *                   name: "Sample Case"
+ *                   images: ["/uploads/products/sample-case.jpg"]
+ *                   description: "A durable phone case"
+ *                   price: 19.99
+ *                   rating: 4.5
+ *                   stock: 100
+ *                   category: "Cases"
+ *                   createdAt: "2025-10-04T22:30:00.000Z"
+ *                   updatedAt: "2025-10-04T22:30:00.000Z"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Server Error
  */
 router.get('/', getProducts);
 
@@ -23,6 +101,7 @@ router.get('/', getProducts);
  * /api/products/{id}:
  *   get:
  *     summary: Retrieve a single product by ID
+ *     description: Fetches detailed information about a specific product identified by its ID.
  *     tags:
  *       - Products
  *     parameters:
@@ -31,9 +110,60 @@ router.get('/', getProducts);
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID of the product to retrieve
+ *         example: "507f1f77bcf86cd799439011"
  *     responses:
  *       200:
- *         description: Product object returned
+ *         description: Successfully retrieved the product
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ *             example:
+ *               success: true
+ *               data:
+ *                 _id: "507f1f77bcf86cd799439011"
+ *                 name: "Sample Case"
+ *                 images: ["/uploads/products/sample-case.jpg"]
+ *                 description: "A durable phone case"
+ *                 price: 19.99
+ *                 rating: 4.5
+ *                 stock: 100
+ *                 category: "Cases"
+ *                 createdAt: "2025-10-04T22:30:00.000Z"
+ *                 updatedAt: "2025-10-04T22:30:00.000Z"
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Product not found
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Server Error
  */
 router.get('/:id', getProductById);
 
@@ -42,6 +172,7 @@ router.get('/:id', getProductById);
  * /api/products/add:
  *   post:
  *     summary: Create a new product
+ *     description: Creates a new product with the provided details. Requires admin authentication and supports uploading multiple images. Validates input data before creation.
  *     tags:
  *       - Products
  *     security:
@@ -52,19 +183,94 @@ router.get('/:id', getProductById);
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - description
+ *               - stock
+ *               - category
+ *               - images
  *             properties:
  *               name:
  *                 type: string
+ *                 description: Name of the product (max 100 characters)
+ *                 example: "Sample Case"
  *               price:
  *                 type: number
+ *                 description: Price of the product
+ *                 example: 19.99
+ *               description:
+ *                 type: string
+ *                 description: Description of the product (max 500 characters)
+ *                 example: "A durable phone case"
+ *               stock:
+ *                 type: number
+ *                 description: Available stock quantity
+ *                 example: 100
+ *               category:
+ *                 type: string
+ *                 enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *                 description: Product category
+ *                 example: "Cases"
  *               images:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
+ *                 description: Product images to upload
  *     responses:
  *       201:
- *         description: Product created
+ *         description: Product successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ *             example:
+ *               success: true
+ *               data:
+ *                 _id: "507f1f77bcf86cd799439011"
+ *                 name: "Sample Case"
+ *                 images: ["/uploads/products/sample-case.jpg"]
+ *                 description: "A durable phone case"
+ *                 price: 19.99
+ *                 rating: 0
+ *                 stock: 100
+ *                 category: "Cases"
+ *                 createdAt: "2025-10-04T22:30:00.000Z"
+ *                 updatedAt: "2025-10-04T22:30:00.000Z"
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       msg:
+ *                         type: string
+ *                       param:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *             example:
+ *               errors:
+ *                 - msg: "Please add a product name"
+ *                   param: "name"
+ *                   location: "body"
+ *       401:
+ *         description: Unauthorized access, invalid or missing token
+ *       403:
+ *         description: Forbidden, user is not an admin
  */
 router.post('/add', protect, authorize('admin'), uploadMultiple, createProduct);
 
@@ -73,6 +279,7 @@ router.post('/add', protect, authorize('admin'), uploadMultiple, createProduct);
  * /api/products/{id}:
  *   delete:
  *     summary: Delete a product by ID
+ *     description: Deletes a specific product identified by its ID. Requires admin authentication.
  *     tags:
  *       - Products
  *     security:
@@ -83,9 +290,52 @@ router.post('/add', protect, authorize('admin'), uploadMultiple, createProduct);
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID of the product to delete
+ *         example: "507f1f77bcf86cd799439011"
  *     responses:
  *       200:
- *         description: Product deleted
+ *         description: Product successfully deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   example: {}
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Product not found
+ *       401:
+ *         description: Unauthorized access, invalid or missing token
+ *       403:
+ *         description: Forbidden, user is not an admin
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Server Error
  */
 router.delete('/:id', protect, authorize('admin'), deleteProduct);
 
@@ -94,6 +344,7 @@ router.delete('/:id', protect, authorize('admin'), deleteProduct);
  * /api/products/{id}:
  *   put:
  *     summary: Update a product by ID
+ *     description: Updates a specific product's details identified by its ID. Requires admin authentication and supports updating images. Validates input data before updating.
  *     tags:
  *       - Products
  *     security:
@@ -104,6 +355,8 @@ router.delete('/:id', protect, authorize('admin'), deleteProduct);
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID of the product to update
+ *         example: "507f1f77bcf86cd799439011"
  *     requestBody:
  *       required: false
  *       content:
@@ -113,17 +366,142 @@ router.delete('/:id', protect, authorize('admin'), deleteProduct);
  *             properties:
  *               name:
  *                 type: string
+ *                 description: Updated name of the product (max 100 characters)
+ *                 example: "Updated Sample Case"
  *               price:
  *                 type: number
+ *                 description: Updated price of the product
+ *                 example: 24.99
+ *               description:
+ *                 type: string
+ *                 description: Updated description of the product (max 500 characters)
+ *                 example: "An updated durable phone case"
+ *               stock:
+ *                 type: number
+ *                 description: Updated stock quantity
+ *                 example: 150
+ *               category:
+ *                 type: string
+ *                 enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *                 description: Updated product category
+ *                 example: "Cases"
  *               images:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: binary
+ *                 description: Updated product images to upload
  *     responses:
  *       200:
- *         description: Product updated
+ *         description: Product successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ *             example:
+ *               success: true
+ *               data:
+ *                 _id: "507f1f77bcf86cd799439011"
+ *                 name: "Updated Sample Case"
+ *                 images: ["/uploads/products/updated-sample-case.jpg"]
+ *                 description: "An updated durable phone case"
+ *                 price: 24.99
+ *                 rating: 4.5
+ *                 stock: 150
+ *                 category: "Cases"
+ *                 createdAt: "2025-10-04T22:30:00.000Z"
+ *                 updatedAt: "2025-10-04T23:00:00.000Z"
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       msg:
+ *                         type: string
+ *                       param:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *             example:
+ *               errors:
+ *                 - msg: "Price cannot be negative"
+ *                   param: "price"
+ *                   location: "body"
+ *       404:
+ *         description: Product not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Product not found
+ *       401:
+ *         description: Unauthorized access, invalid or missing token
+ *       403:
+ *         description: Forbidden, user is not an admin
  */
 router.put('/:id', protect, authorize('admin'), uploadMultiple, updateProduct);
 
 export const productsRouter = router;
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Product:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Unique identifier for the product
+ *         name:
+ *           type: string
+ *           description: Name of the product (max 100 characters)
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of image URLs for the product
+ *         description:
+ *           type: string
+ *           description: Description of the product (max 500 characters)
+ *         price:
+ *           type: number
+ *           description: Price of the product
+ *         rating:
+ *           type: number
+ *           description: Average rating of the product (0 to 5)
+ *         stock:
+ *           type: number
+ *           description: Available stock quantity
+ *         category:
+ *           type: string
+ *           enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *           description: Product category
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Date the product was created
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Date the product was last updated
+ */

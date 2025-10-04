@@ -29,7 +29,7 @@ export const register = async (req, res, next) => {
         // Determine role - user is default if adminCode is empty/undefined
         const role = adminCode ? 
             (adminCode === process.env.ADMIN_CODE ? 'admin' : 'user') : 
-            'user';
+            'user'; 
         
         // Create a User
         user = await User.create({
