@@ -8,7 +8,7 @@ import {
     register, 
     login, 
     getMe, 
-    forgotPassword, 
+    forgotPassword,  
     resetPassword, 
     updatePassword,
     deleteAccount,

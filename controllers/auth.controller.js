@@ -3,6 +3,8 @@ import { validationResult } from "express-validator";
 import { sendTokenResponse } from "../utils/authUtils.js";
 import crypto from 'crypto';
 import { sendEmail } from '../utils/email.js';
+import path from "path";
+import fs from 'fs';
 
 // @desc   Register User
 // @route  /api/auth/register
@@ -50,6 +52,9 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
+        // Debug: log headers and body as early as possible
+        console.log('Login request content-type:', req.headers['content-type']);
+        console.log('Login request body:', req.body);
         const errors = validationResult(req);
     if (!errors.isEmpty()) {
        return res .status(400).json({ errors: errors.array() });
@@ -73,7 +78,7 @@ export const login = async (req, res, next) => {
         success: false,
         error: 'Invalid credentials'
       });
-    }
+    } 
 
     sendTokenResponse(user, 200, res);
     } catch (error) { 
@@ -88,14 +93,21 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
+        if (user.avatar) {
+            const avatarPath = path.join(process.cwd(), 'Uploads', 'avatars', path.basename(user.avatar));
+            if (!fs.existsSync(avatarPath)) {
+                user.avatar = null; // Or set a default path like '/default-avatar.png'
+            }
+        }
         res.status(200).json({
             success: true,
             data: user
         });
     } catch (error) {
+        console.error('GetMe error:', error.message, error.stack);
         next(error);
     }
-}
+};
 
 // @desc   Forgot password
 // @route  POST /api/auth/forgotpassword
@@ -248,7 +260,6 @@ export const updatePassword = async (req, res, next) => {
 // @access Private
 export const updateDetails = async (req, res, next) => {
     try {
-        // Check for multer errors
         if (req.fileValidationError) {
             return res.status(400).json({
                 success: false,
@@ -256,20 +267,22 @@ export const updateDetails = async (req, res, next) => {
             });
         }
 
-        // Check if user is authenticated
-        if (!req.user) { 
+        if (!req.user) {
             return res.status(401).json({ success: false, error: 'User not authenticated' });
         }
 
-        console.log('Request body:', req.body, 'File:', req.file); // Debug log
+        console.log('Request body:', req.body, 'File:', req.file);
 
         const fieldsToUpdate = {};
         if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
         if (req.body.lastName) fieldsToUpdate.lastName = req.body.lastName;
         if (req.body.phoneNumber) fieldsToUpdate.phoneNumber = req.body.phoneNumber;
-        if (req.file) fieldsToUpdate.avatar = `/uploads/avatars/${req.file.filename}`;
+        if (req.file) {
+            const avatarPath = `/uploads/avatars/${req.file.filename}`;
+            fieldsToUpdate.avatar = avatarPath;
+            console.log('Avatar saved at:', path.join(process.cwd(), 'uploads', 'avatars', req.file.filename));
+        }
 
-        // Check if any fields were provided
         if (Object.keys(fieldsToUpdate).length === 0) {
             return res.status(400).json({
                 success: false,
@@ -277,7 +290,6 @@ export const updateDetails = async (req, res, next) => {
             });
         }
 
-        // Find and update user
         const user = await User.findByIdAndUpdate(
             req.user._id,
             fieldsToUpdate,

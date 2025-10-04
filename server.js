@@ -30,6 +30,7 @@ app.use(cors({
 
 // Body parsing middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); 
 
 // Connect to Database
 connectDB();
