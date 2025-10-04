@@ -52,6 +52,9 @@ app.use(errorHandler);
 // Swagger route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Redirect root to Swagger UI
+app.get('/', (req, res) => res.redirect('/api-docs'));
+
 // Example route
 app.get("/api/hello", (req, res) => {
   res.json({ message: "Hello World" });
