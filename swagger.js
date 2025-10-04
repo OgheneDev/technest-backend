@@ -14,6 +14,15 @@ const options = {
         url: "https://technest-ohai.onrender.com",
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
   },
   apis: ["./routes/*.js"], // Path to your route files
 };

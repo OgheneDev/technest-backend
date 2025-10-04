@@ -12,23 +12,53 @@ const router = express.Router();
 router.use(protect);
 
 /**
- * @route   POST /api/checkout/initialize
- * @desc    Initialize a new checkout session / payment
- * @access  Private
+ * @openapi
+ * /api/checkout/initialize:
+ *   post:
+ *     summary: Initialize a new checkout session / payment
+ *     tags:
+ *       - Checkout
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Checkout session initialized
  */
 router.post('/initialize', initializeCheckout);
 
 /**
- * @route   GET /api/checkout/verify/:reference
- * @desc    Verify payment by reference
- * @access  Private
+ * @openapi
+ * /api/checkout/verify/{reference}:
+ *   get:
+ *     summary: Verify payment by reference
+ *     tags:
+ *       - Checkout
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reference
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Payment verification result
  */
 router.get('/verify/:reference', verifyPayment);
 
 /**
- * @route   GET /api/checkout/history
- * @desc    Retrieve authenticated user's checkout/payment history
- * @access  Private
+ * @openapi
+ * /api/checkout/history:
+ *   get:
+ *     summary: Retrieve authenticated user's checkout/payment history
+ *     tags:
+ *       - Checkout
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of checkout history items
  */
 router.get('/history', getCheckoutHistory);
 
