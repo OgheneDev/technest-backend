@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { sendEmail } from '../utils/email.js';
 import path from "path";
 import fs from 'fs';
+import { uploadBuffer } from "../utils/cloudinary.js";
 
 // @desc   Register User
 // @route  /api/auth/register
@@ -93,12 +94,22 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
-        if (user.avatar) {
-            const avatarPath = path.join(process.cwd(), 'Uploads', 'avatars', path.basename(user.avatar));
-            if (!fs.existsSync(avatarPath)) {
-                user.avatar = null; // Or set a default path like '/default-avatar.png'
+
+        // If avatar exists and is a local path, ensure file exists.
+        // If it's a remote URL (Cloudinary), leave it as-is.
+        if (user && user.avatar) {
+            const isRemote = /^https?:\/\//i.test(user.avatar);
+            if (!isRemote) {
+                const avatarPath = path.join(process.cwd(), 'Uploads', 'avatars', path.basename(user.avatar));
+                if (!fs.existsSync(avatarPath)) {
+                    user.avatar = null; // local file missing
+                } else {
+                    // if you want to return a public route for local files, uncomment:
+                    // user.avatar = `/uploads/avatars/${path.basename(user.avatar)}`;
+                }
             }
         }
+
         res.status(200).json({
             success: true,
             data: user
@@ -277,10 +288,12 @@ export const updateDetails = async (req, res, next) => {
         if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
         if (req.body.lastName) fieldsToUpdate.lastName = req.body.lastName;
         if (req.body.phoneNumber) fieldsToUpdate.phoneNumber = req.body.phoneNumber;
+
         if (req.file) {
-            const avatarPath = `/uploads/avatars/${req.file.filename}`;
-            fieldsToUpdate.avatar = avatarPath;
-            console.log('Avatar saved at:', path.join(process.cwd(), 'uploads', 'avatars', req.file.filename));
+            // Upload buffer to Cloudinary into "technest/avatars"
+            const result = await uploadBuffer(req.file.buffer, { folder: 'technest/avatars' });
+            fieldsToUpdate.avatar = result.secure_url;
+            console.log('Avatar uploaded to Cloudinary:', result.secure_url);
         }
 
         if (Object.keys(fieldsToUpdate).length === 0) {

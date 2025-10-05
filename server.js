@@ -19,7 +19,7 @@ const app = express();
 
 // Configure CORS
 app.use(cors({
-    origin: [ 
+    origin: [  
         'http://localhost:3000',
         'https://technest-frontend.vercel.app'
     ],
