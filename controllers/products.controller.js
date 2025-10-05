@@ -1,5 +1,6 @@
 import Product from '../models/products.js'
 import { validationResult } from 'express-validator'
+import uploadBuffer from '../utils/cloudinary.js'
 
 // @desc Get all products
 // @route GET /api/products
@@ -53,15 +54,17 @@ export const getProducts = async (req, res, next) => {
 // @access Private/Admin
 export const createProduct = async (req, res, next) => {
     try {
-        // Validate request
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // Add image paths to request body
-        if (req.files) {
-            req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
+        // If files are present (memory buffers), upload them to Cloudinary
+        if (req.files && req.files.length) {
+            const uploads = await Promise.all(
+                req.files.map(file => uploadBuffer(file.buffer, { folder: 'technest/products' }))
+            );
+            req.body.images = uploads.map(u => u.secure_url);
         }
 
         const product = await Product.create(req.body);
@@ -73,7 +76,7 @@ export const createProduct = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}
+};
 
 // @desc Delete product
 // @route DELETE /api/products/:id
@@ -117,9 +120,12 @@ export const updateProduct = async (req, res, next) => {
             });
         }
 
-        // Add new image paths to request body if files were uploaded
-        if (req.files) {
-            req.body.images = req.files.map(file => `/uploads/products/${file.filename}`);
+        // Upload new images if provided
+        if (req.files && req.files.length) {
+            const uploads = await Promise.all(
+                req.files.map(file => uploadBuffer(file.buffer, { folder: 'technest/products' }))
+            );
+            req.body.images = uploads.map(u => u.secure_url);
         }
 
         product = await Product.findByIdAndUpdate(req.params.id, req.body, {
