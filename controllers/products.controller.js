@@ -1,6 +1,6 @@
 import Product from '../models/products.js'
 import { validationResult } from 'express-validator'
-import uploadBuffer from '../utils/cloudinary.js'
+import { uploadBuffer } from '../utils/cloudinary.js'
 
 // @desc Get all products
 // @route GET /api/products

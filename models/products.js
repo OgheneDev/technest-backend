@@ -41,7 +41,7 @@ const ProductSchema = new mongoose.Schema({
     category: {
         type: String,
         required: [true, 'Please add a product category'],
-        enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories'],
+        enum: ['cases', 'screen protectors', 'magsafe', 'cables', 'chargers', 'powerbanks', 'headphones', 'speakers', 'smartwatches', 'tablets', 'laptops', 'accessories'],
     },
     createdAt: {
         type: Date,

@@ -30,7 +30,7 @@ const router = express.Router();
  *         name: category
  *         schema:
  *           type: string
- *           enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *           enum: ['cases', 'screen protectors', 'magsafe', 'cables', 'chargers', 'powerbanks', 'headphones', 'speakers', 'smartwatches', 'tablets', 'laptops', 'accessories']
  *         description: Filter products by category
  *     responses:
  *       200:
@@ -209,7 +209,7 @@ router.get('/:id', getProductById);
  *                 example: 100
  *               category:
  *                 type: string
- *                 enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *                 enum: ['cases', 'screen protectors', 'magsafe', 'cables', 'chargers', 'powerbanks', 'headphones', 'speakers', 'smartwatches', 'tablets', 'laptops', 'accessories']
  *                 description: Product category
  *                 example: "Cases"
  *               images:
@@ -382,7 +382,7 @@ router.delete('/:id', protect, authorize('admin'), deleteProduct);
  *                 example: 150
  *               category:
  *                 type: string
- *                 enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *                 enum: ['cases', 'screen protectors', 'magsafe', 'cables', 'chargers', 'powerbanks', 'headphones', 'speakers', 'smartwatches', 'tablets', 'laptops', 'accessories']
  *                 description: Updated product category
  *                 example: "Cases"
  *               images:
@@ -494,11 +494,11 @@ export const productsRouter = router;
  *           description: Available stock quantity
  *         category:
  *           type: string
- *           enum: ['Cases', 'Screen Protectors', 'MagSafe', 'Cables', 'Chargers', 'Powerbanks', 'Headphones', 'Speakers', 'Smartwatches', 'Tablets', 'Laptops', 'Accessories']
+ *           enum: ['cases', 'screen protectors', 'magsafe', 'cables', 'chargers', 'powerbanks', 'headphones', 'speakers', 'smartwatches', 'tablets', 'laptops', 'accessories']
  *           description: Product category
  *         createdAt:
  *           type: string
- *           format: date-time
+ *           format: date-time 
  *           description: Date the product was created
  *         updatedAt:
  *           type: string
