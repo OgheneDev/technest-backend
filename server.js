@@ -6,6 +6,7 @@ import { productsRouter } from './routes/products.routes.js';
 import { cartRouter } from './routes/cart.routes.js';
 import { wishlistRouter } from './routes/wishlist.routes.js';
 import { checkoutRouter } from './routes/checkout.routes.js';
+import { adminRouter } from './routes/admin.routes.js';
 import { errorHandler } from './middleware/error.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -41,6 +42,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/wishlist', wishlistRouter);
 app.use('/api/checkout', checkoutRouter);
+app.use('/api/admin', adminRouter);
 
 // Serve static files from uploads directory
 const __filename = fileURLToPath(import.meta.url);
@@ -55,11 +57,6 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Redirect root to Swagger UI
 app.get('/', (req, res) => res.redirect('/api-docs'));
-
-// Example route
-app.get("/api/hello", (req, res) => {
-  res.json({ message: "Hello World" });
-});
 
 // Start Server
 app.listen(PORT, () => {

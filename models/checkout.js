@@ -18,7 +18,7 @@ const CheckoutSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['Debit Card', 'Bank Transfer'],
+        enum: ['debit-card', 'bank-transfer'],
         required: true
     },
     shippingAddress: {
