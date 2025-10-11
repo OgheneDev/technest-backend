@@ -224,7 +224,7 @@ export const createProductReview = async (req, res, next) => {
 // @access Public
 export const getProductReviews = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate('reviews.user', 'name email');
+    const product = await Product.findById(req.params.id).populate('reviews.user', 'firstName lastName avatar');
 
     if (!product) {
       return res.status(404).json({
