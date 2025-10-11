@@ -1,5 +1,5 @@
 import express from 'express';
-import { getProducts, getProductById, deleteProduct, updateProduct, createProduct, createProductReview, getReviewsByRating } from '../controllers/products.controller.js';
+import { getProducts, getProductById, deleteProduct, updateProduct, createProduct, createProductReview, getProductReviews } from '../controllers/products.controller.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { uploadMultiple } from '../middleware/fileUpload.js';
 import { body } from 'express-validator';
