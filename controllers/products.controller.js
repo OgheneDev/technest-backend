@@ -167,3 +167,92 @@ export const getProductById = async (req, res, next) => {
         });
     }
 };
+
+// @desc Add a review for a product
+// @route POST /api/products/:id/reviews
+// @access Private
+export const createProductReview = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { rating, comment } = req.body;
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    // Check if user already reviewed the product
+    const alreadyReviewed = product.reviews.some(
+      review => review.user.toString() === req.user._id.toString()
+    );
+
+    if (alreadyReviewed) {
+      return res.status(400).json({
+        success: false,
+        error: 'You have already reviewed this product'
+      });
+    }
+
+    // Create new review
+    const review = {
+      user: req.user._id,
+      rating: Number(rating),
+      comment
+    };
+
+    product.reviews.push(review);
+    await product.save();
+
+    res.status(201).json({
+      success: true,
+      data: product
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Get reviews for a product by specific rating
+// @route GET /api/products/:id/reviews/rating/:rating
+// @access Public
+export const getReviewsByRating = async (req, res, next) => {
+  try {
+    const rating = parseInt(req.params.rating, 10);
+    if (isNaN(rating) || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Rating must be between 1 and 5'
+      });
+    }
+
+    const product = await Product.findById(req.params.id).populate('reviews.user', 'name email');
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Product not found'
+      });
+    }
+
+    const filteredReviews = product.reviews.filter(
+      review => review.rating === rating
+    );
+
+    res.status(200).json({
+      success: true,
+      data: filteredReviews
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Server Error'
+    });
+  }
+};

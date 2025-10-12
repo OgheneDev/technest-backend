@@ -1,7 +1,8 @@
 import express from 'express';
-import { getProducts, getProductById, deleteProduct, updateProduct, createProduct } from '../controllers/products.controller.js';
+import { getProducts, getProductById, deleteProduct, updateProduct, createProduct, createProductReview, getReviewsByRating } from '../controllers/products.controller.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { uploadMultiple } from '../middleware/fileUpload.js';
+import { body } from 'express-validator';
 
 const router = express.Router();
 
@@ -459,6 +460,158 @@ router.delete('/:id', protect, authorize('admin'), deleteProduct);
  *         description: Forbidden, user is not an admin
  */
 router.put('/:id', protect, authorize('admin'), uploadMultiple, updateProduct);
+
+/**
+ * @openapi
+ * /api/products/{id}/reviews:
+ *   post:
+ *     summary: Add a review for a product
+ *     description: Allows authenticated users to post a review (rating and optional comment) for a specific product. Users can only review a product once.
+ *     tags:
+ *       - Reviews
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the product to review
+ *         example: "507f1f77bcf86cd799439011"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rating
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 description: Rating for the product (1 to 5)
+ *                 example: 4
+ *               comment:
+ *                 type: string
+ *                 description: Optional review comment (max 500 characters)
+ *                 example: "Great product, very durable!"
+ *     responses:
+ *       201:
+ *         description: Review successfully added
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Invalid request data or user already reviewed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: You have already reviewed this product
+ *       404:
+ *         description: Product not found
+ *       401:
+ *         description: Unauthorized access, invalid or missing token
+ */
+router.post(
+  '/:id/reviews',
+  protect,
+  [
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+    body('comment').optional().trim().isLength({ max: 500 }).withMessage('Comment cannot be more than 500 characters')
+  ],
+  createProductReview
+);
+
+/**
+ * @openapi
+ * /api/products/{id}/reviews/rating/{rating}:
+ *   get:
+ *     summary: Get reviews for a product by specific rating
+ *     description: Retrieves all reviews for a specific product that match the given rating value.
+ *     tags:
+ *       - Reviews
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the product
+ *         example: "507f1f77bcf86cd799439011"
+ *       - in: path
+ *         name: rating
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 5
+ *         description: Rating value to filter reviews (1 to 5)
+ *         example: 4
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Review'
+ *             example:
+ *               success: true
+ *               data:
+ *                 - user: "507f1f77bcf86cd799439012"
+ *                   rating: 4
+ *                   comment: "Great product, very durable!"
+ *                   createdAt: "2025-10-04T22:30:00.000Z"
+ *       404:
+ *         description: Product not found
+ *       400:
+ *         description: Invalid rating value
+ */
+router.get('/:id/reviews/rating/:rating', getReviewsByRating);
+
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Review:
+ *       type: object
+ *       properties:
+ *         user:
+ *           type: string
+ *           description: ID of the user who posted the review
+ *         rating:
+ *           type: number
+ *           description: Rating given in the review (1 to 5)
+ *         comment:
+ *           type: string
+ *           description: Optional review comment (max 500 characters)
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Date the review was created
+ */
 
 export const productsRouter = router;
 
