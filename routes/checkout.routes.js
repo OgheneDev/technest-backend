@@ -45,7 +45,7 @@ router.use(protect);
  *                 example: "123 Victoria Island, Lagos, Nigeria"
  *               paymentMethod:
  *                 type: string
- *                 enum: [Paystack, Crypto, BankTransfer]
+ *                 enum: [debit-card, bank-transfer]
  *                 example: "Paystack"
  *     responses:
  *       200:
