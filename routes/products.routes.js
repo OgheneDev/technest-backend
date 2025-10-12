@@ -539,10 +539,10 @@ router.post(
 
 /**
  * @openapi
- * /api/products/{id}/reviews/rating/{rating}:
+ * /api/products/{id}/reviews:
  *   get:
- *     summary: Get reviews for a product by specific rating
- *     description: Retrieves all reviews for a specific product that match the given rating value.
+ *     summary: Get all reviews for a product
+ *     description: Retrieves all reviews for a specific product, including user details.
  *     tags:
  *       - Reviews
  *     parameters:
@@ -553,15 +553,6 @@ router.post(
  *           type: string
  *         description: ID of the product
  *         example: "507f1f77bcf86cd799439011"
- *       - in: path
- *         name: rating
- *         required: true
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 5
- *         description: Rating value to filter reviews (1 to 5)
- *         example: 4
  *     responses:
  *       200:
  *         description: Successfully retrieved reviews
@@ -580,16 +571,37 @@ router.post(
  *             example:
  *               success: true
  *               data:
- *                 - user: "507f1f77bcf86cd799439012"
+ *                 - user:
+ *                     _id: "507f1f77bcf86cd799439012"
+ *                     name: "John Doe"
+ *                     email: "john@example.com"
  *                   rating: 4
  *                   comment: "Great product, very durable!"
- *                   createdAt: "2025-10-04T22:30:00.000Z"
+ *                   createdAt: "2025-10-11T19:13:00.000Z"
+ *                 - user:
+ *                     _id: "507f1f77bcf86cd799439013"
+ *                     name: "Jane Doe"
+ *                     email: "jane@example.com"
+ *                   rating: 5
+ *                   comment: "Absolutely fantastic!"
+ *                   createdAt: "2025-10-11T20:00:00.000Z"
  *       404:
  *         description: Product not found
- *       400:
- *         description: Invalid rating value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: Product not found
+ *       500:
+ *         description: Server error
  */
-router.get('/:id/reviews/rating/:rating', getReviewsByRating);
+router.get('/:id/reviews', getProductReviews);
 
 /**
  * @openapi
@@ -599,8 +611,17 @@ router.get('/:id/reviews/rating/:rating', getReviewsByRating);
  *       type: object
  *       properties:
  *         user:
- *           type: string
- *           description: ID of the user who posted the review
+ *           type: object
+ *           properties:
+ *             _id:
+ *               type: string
+ *               description: ID of the user who posted the review
+ *             name:
+ *               type: string
+ *               description: Name of the user
+ *             email:
+ *               type: string
+ *               description: Email of the user
  *         rating:
  *           type: number
  *           description: Rating given in the review (1 to 5)

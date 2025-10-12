@@ -219,19 +219,11 @@ export const createProductReview = async (req, res, next) => {
   }
 };
 
-// @desc Get reviews for a product by specific rating
-// @route GET /api/products/:id/reviews/rating/:rating
+// @desc Get all reviews for a product
+// @route GET /api/products/:id/reviews
 // @access Public
-export const getReviewsByRating = async (req, res, next) => {
+export const getProductReviews = async (req, res, next) => {
   try {
-    const rating = parseInt(req.params.rating, 10);
-    if (isNaN(rating) || rating < 1 || rating > 5) {
-      return res.status(400).json({
-        success: false,
-        error: 'Rating must be between 1 and 5'
-      });
-    }
-
     const product = await Product.findById(req.params.id).populate('reviews.user', 'name email');
 
     if (!product) {
@@ -241,13 +233,9 @@ export const getReviewsByRating = async (req, res, next) => {
       });
     }
 
-    const filteredReviews = product.reviews.filter(
-      review => review.rating === rating
-    );
-
     res.status(200).json({
       success: true,
-      data: filteredReviews
+      data: product.reviews
     });
   } catch (error) {
     res.status(500).json({
