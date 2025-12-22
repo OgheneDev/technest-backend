@@ -156,116 +156,6 @@ router.get("/verify/:reference", verifyPayment);
 
 /**
  * @openapi
- * /api/checkout/webhook:
- *   post:
- *     summary: Paystack webhook for payment notifications
- *     description: |
- *       Endpoint for Paystack to send payment notifications.
- *       Updates checkout status and clears cart on successful payment.
- *       This endpoint does not require authentication.
- *     tags:
- *       - Checkout
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               event:
- *                 type: string
- *                 example: "charge.success"
- *               data:
- *                 type: object
- *                 properties:
- *                   reference:
- *                     type: string
- *                     example: "T12345ABC"
- *                   status:
- *                     type: string
- *                     example: "success"
- *     responses:
- *       200:
- *         description: Webhook received successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 received:
- *                   type: boolean
- *                   example: true
- *       500:
- *         description: Internal server error
- */
-router.post("/webhook", webhookHandler); // Note: No protect middleware for webhook
-
-/**
- * @openapi
- * /api/checkout/{id}:
- *   get:
- *     summary: Get a specific checkout by ID
- *     description: Retrieve details of a specific checkout belonging to the authenticated user.
- *     tags:
- *       - Checkout
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: Checkout ID
- *         schema:
- *           type: string
- *           example: "652bcf23f91ac9321a1e6f74"
- *     responses:
- *       200:
- *         description: Checkout details retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                       example: "652bcf23f91ac9321a1e6f74"
- *                     user:
- *                       type: object
- *                       properties:
- *                         name:
- *                           type: string
- *                           example: "John Doe"
- *                         email:
- *                           type: string
- *                           example: "john@example.com"
- *                     totalPrice:
- *                       type: number
- *                       example: 5000
- *                     status:
- *                       type: string
- *                       example: "completed"
- *                     paymentReference:
- *                       type: string
- *                       example: "PSK-3421ABC"
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                       example: "2025-10-12T12:34:56.789Z"
- *       404:
- *         description: Checkout not found
- *       500:
- *         description: Internal server error
- */
-router.get("/:id", getCheckoutById);
-
-/**
- * @openapi
  * /api/checkout/history:
  *   get:
  *     summary: Get user's checkout history with filtering and pagination
@@ -354,7 +244,73 @@ router.get("/:id", getCheckoutById);
  *       500:
  *         description: Internal server error
  */
+// ✅ MOVE /history route BEFORE /:id route
 router.get("/history", getCheckoutHistory);
+
+/**
+ * @openapi
+ * /api/checkout/{id}:
+ *   get:
+ *     summary: Get a specific checkout by ID
+ *     description: Retrieve details of a specific checkout belonging to the authenticated user.
+ *     tags:
+ *       - Checkout
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Checkout ID
+ *         schema:
+ *           type: string
+ *           example: "652bcf23f91ac9321a1e6f74"
+ *     responses:
+ *       200:
+ *         description: Checkout details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "652bcf23f91ac9321a1e6f74"
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                           example: "John Doe"
+ *                         email:
+ *                           type: string
+ *                           example: "john@example.com"
+ *                     totalPrice:
+ *                       type: number
+ *                       example: 5000
+ *                     status:
+ *                       type: string
+ *                       example: "completed"
+ *                     paymentReference:
+ *                       type: string
+ *                       example: "PSK-3421ABC"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-10-12T12:34:56.789Z"
+ *       404:
+ *         description: Checkout not found
+ *       500:
+ *         description: Internal server error
+ */
+// ✅ This should come AFTER /history
+router.get("/:id", getCheckoutById);
 
 /**
  * @openapi
@@ -410,5 +366,53 @@ router.get("/history", getCheckoutHistory);
  *         description: Internal server error
  */
 router.put("/:id/cancel", cancelCheckout);
+
+/**
+ * @openapi
+ * /api/checkout/webhook:
+ *   post:
+ *     summary: Paystack webhook for payment notifications
+ *     description: |
+ *       Endpoint for Paystack to send payment notifications.
+ *       Updates checkout status and clears cart on successful payment.
+ *       This endpoint does not require authentication.
+ *     tags:
+ *       - Checkout
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               event:
+ *                 type: string
+ *                 example: "charge.success"
+ *               data:
+ *                 type: object
+ *                 properties:
+ *                   reference:
+ *                     type: string
+ *                     example: "T12345ABC"
+ *                   status:
+ *                     type: string
+ *                     example: "success"
+ *     responses:
+ *       200:
+ *         description: Webhook received successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 received:
+ *                   type: boolean
+ *                   example: true
+ *       500:
+ *         description: Internal server error
+ */
+// ✅ Webhook should be at the end since it doesn't use protect middleware
+// Remove protect middleware for this specific route
+router.post("/webhook", webhookHandler); // No protect middleware
 
 export const checkoutRouter = router;
