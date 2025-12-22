@@ -35,8 +35,7 @@ export const initializeCheckout = async (req, res, next) => {
     // Initialize Paystack transaction
     const paymentData = {
       email: req.user.email,
-      amount: Math.round(cart.totalPrice * 100), // Convert to kobo
-      callback_url: `${process.env.FRONTEND_URL}/payment/verify`,
+      amount: Math.round(cart.totalPrice * 100),
       metadata: {
         userId: req.user.id,
         cartId: cart._id.toString(),
@@ -82,7 +81,17 @@ export const initializeCheckout = async (req, res, next) => {
 // @access  Private
 export const verifyPayment = async (req, res, next) => {
   try {
+    // Make sure we're getting the reference from params
     const { reference } = req.params;
+
+    if (!reference) {
+      return res.status(400).json({
+        success: false,
+        error: "Payment reference is required",
+      });
+    }
+
+    console.log("Verifying payment with reference:", reference);
 
     // Verify payment with Paystack
     const payment = await paystackClient.transaction.verify(reference);
@@ -137,6 +146,7 @@ export const verifyPayment = async (req, res, next) => {
       });
     }
   } catch (error) {
+    console.error("Payment verification error:", error);
     next(error);
   }
 };
