@@ -48,8 +48,8 @@ router.use(protect);
  *                 example: "123 Victoria Island, Lagos, Nigeria"
  *               paymentMethod:
  *                 type: string
- *                 enum: [paystack, debit-card, bank-transfer]
- *                 example: "paystack"
+ *                 enum: [debit-card, bank-transfer]
+ *                 example: "Paystack"
  *     responses:
  *       201:
  *         description: Checkout session successfully initialized
