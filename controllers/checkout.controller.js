@@ -36,6 +36,7 @@ export const initializeCheckout = async (req, res, next) => {
     const paymentData = {
       email: req.user.email,
       amount: Math.round(cart.totalPrice * 100),
+      callback_url: `${process.env.FRONTEND_URL}/payment/verify`,
       metadata: {
         userId: req.user.id,
         cartId: cart._id.toString(),
