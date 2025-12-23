@@ -18,7 +18,8 @@ export const register = async (req, res, next) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password, adminCode, firstName, lastName } = req.body;
+    const { email, password, adminCode, firstName, lastName, phoneNumber } =
+      req.body;
 
     // Check if user already exists
     let user = await User.findOne({ email });
@@ -43,6 +44,7 @@ export const register = async (req, res, next) => {
       role,
       firstName,
       lastName,
+      phoneNumber,
     });
 
     sendTokenResponse(user, 201, res);
