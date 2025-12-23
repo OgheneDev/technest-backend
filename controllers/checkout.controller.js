@@ -82,29 +82,20 @@ export const initializeCheckout = async (req, res, next) => {
 // @access  Private
 export const verifyPayment = async (req, res, next) => {
   try {
-    // Make sure we're getting the reference correctly
-    console.log("🔍 verifyPayment endpoint called");
-    console.log("🔍 req.params:", req.params);
-    console.log("🔍 req.query:", req.query);
-    console.log("🔍 req.body:", req.body);
-
     // Get reference from params (URL path)
     const { reference } = req.params;
 
     if (!reference) {
-      console.error("❌ No reference provided");
       return res.status(400).json({
         success: false,
         error: "Payment reference is required",
       });
     }
 
-    console.log("✅ Verifying payment with reference:", reference);
+    console.log("Verifying payment with reference:", reference);
 
-    // Verify payment with Paystack
-    const payment = await paystackClient.transaction.verify(reference);
-
-    console.log("✅ Paystack response:", payment.data);
+    // FIX: Pass the reference as an object, not a string
+    const payment = await paystackClient.transaction.verify({ reference });
 
     if (payment.data.status === "success") {
       // Update checkout status and payment details
@@ -125,7 +116,6 @@ export const verifyPayment = async (req, res, next) => {
       ).populate("cart");
 
       if (!checkout) {
-        console.error("❌ Checkout not found for reference:", reference);
         return res.status(404).json({
           success: false,
           error: "Checkout not found",
@@ -136,11 +126,6 @@ export const verifyPayment = async (req, res, next) => {
       await Cart.findOneAndUpdate(
         { _id: checkout.cart._id },
         { products: [], totalPrice: 0 }
-      );
-
-      console.log(
-        "✅ Payment verified successfully for checkout:",
-        checkout._id
       );
 
       res.status(200).json({
@@ -155,11 +140,6 @@ export const verifyPayment = async (req, res, next) => {
         { status: "failed" }
       );
 
-      console.error(
-        "❌ Payment verification failed with status:",
-        payment.data.status
-      );
-
       res.status(400).json({
         success: false,
         error: "Payment verification failed",
@@ -167,10 +147,23 @@ export const verifyPayment = async (req, res, next) => {
       });
     }
   } catch (error) {
-    console.error("❌ Payment verification error:", error);
-    next(error);
+    console.error("Payment verification error:", error);
+
+    // Provide more specific error message
+    let errorMessage = "Payment verification failed";
+    if (error.message.includes("reference")) {
+      errorMessage = "Invalid payment reference";
+    }
+
+    res.status(400).json({
+      success: false,
+      error: errorMessage,
+      details:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
   }
 };
+
 // @desc    Webhook for Paystack payment verification
 // @route   POST /api/checkout/webhook
 // @access  Public (Called by Paystack)
