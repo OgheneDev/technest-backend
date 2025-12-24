@@ -20,7 +20,7 @@ export const initializeCheckout = async (req, res, next) => {
       });
     }
 
-    // Get user's cart
+    // Get user's cart with populated products
     const cart = await Cart.findOne({ user: req.user.id }).populate(
       "products.product"
     );
@@ -31,6 +31,22 @@ export const initializeCheckout = async (req, res, next) => {
         error: "Cart is empty",
       });
     }
+
+    // Create snapshot of cart items at checkout time
+    const items = cart.products.map((item) => {
+      // Handle case where product might not be populated or deleted
+      if (!item.product) {
+        throw new Error("One or more products in cart are no longer available");
+      }
+
+      return {
+        product: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        image: item.product.images?.[0] || "",
+      };
+    });
 
     // Initialize Paystack transaction
     const paymentData = {
@@ -52,10 +68,11 @@ export const initializeCheckout = async (req, res, next) => {
 
     const payment = await paystackClient.transaction.initialize(paymentData);
 
-    // Create checkout record
+    // Create checkout record with items snapshot
     const checkout = await Checkout.create({
       user: req.user.id,
       cart: cart._id,
+      items: items, // Store the snapshot of cart items
       totalPrice: cart.totalPrice,
       paymentMethod,
       shippingAddress,
@@ -227,13 +244,7 @@ export const getCheckoutById = async (req, res, next) => {
       _id: req.params.id,
       user: req.user.id,
     })
-      .populate({
-        path: "cart",
-        populate: {
-          path: "products.product",
-          model: "Product",
-        },
-      })
+      .populate("items.product", "name price images description") // Populate the items
       .populate("user", "name email");
 
     if (!checkout) {
