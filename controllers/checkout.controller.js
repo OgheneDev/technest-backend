@@ -227,7 +227,13 @@ export const getCheckoutById = async (req, res, next) => {
       _id: req.params.id,
       user: req.user.id,
     })
-      .populate("cart")
+      .populate({
+        path: "cart",
+        populate: {
+          path: "products.product",
+          model: "Product",
+        },
+      })
       .populate("user", "name email");
 
     if (!checkout) {
